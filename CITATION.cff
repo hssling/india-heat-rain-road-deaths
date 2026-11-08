@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this material, please cite this archive (and the article, once published)."
+title: "Temperature and rainfall anomalies and road traffic deaths in 22 Indian states, 2014-2024: data and code"
+type: software
+authors:
+  - family-names: Siddalingaiah
+    given-names: H S
+    orcid: "https://orcid.org/0000-0002-4771-8285"
+    affiliation: "Department of Community Medicine, Shridevi Institute of Medical Sciences and Research Hospital, Tumakuru, Karnataka, India"
+version: 1.0.0
+date-released: 2026-11-09
+license: MIT
+repository-code: "https://github.com/hssling/india-heat-rain-road-deaths"
+references:
+  - type: dataset
+    title: "Higher traffic fines and road deaths in India: data and code (state-month road-death panel 2014-2024)"
+    doi: "10.5281/zenodo.24055110"
+    authors:
+      - family-names: Siddalingaiah
+        given-names: H S
+keywords:
+  - road traffic deaths
+  - temperature
+  - rainfall
+  - climate change
+  - mortality displacement
+  - India

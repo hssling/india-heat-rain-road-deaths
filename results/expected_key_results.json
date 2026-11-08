@@ -1,0 +1,150 @@
+{
+  "_note": "Values reported in the manuscript (rounded to 2 decimals); verify.py recomputes from data/ and outputs/.",
+  "sample": {
+    "states": 22,
+    "state_months": 2750,
+    "weather_units": 35
+  },
+  "fe": {
+    "A joint heat+rain (deaths)|T": [
+      0.95,
+      -0.07,
+      1.97
+    ],
+    "A joint heat+rain (deaths)|R": [
+      -1.39,
+      -2.53,
+      -0.23
+    ],
+    "B + lags|T": [
+      1.28,
+      0.38,
+      2.18
+    ],
+    "B + lags|T_lag": [
+      -0.93,
+      -1.59,
+      -0.27
+    ],
+    "B3 cumulative|heat, cumulative 0-1 month": [
+      0.34,
+      -0.96,
+      1.65
+    ],
+    "B3 cumulative|rain, cumulative 0-1 month": [
+      -2.16,
+      -4.29,
+      0.01
+    ],
+    "B falsification: + leads|T_lead": [
+      -0.11,
+      -1.19,
+      0.98
+    ],
+    "B falsification: + leads|R_lead": [
+      0.69,
+      -0.64,
+      2.04
+    ],
+    "C absolute heat: days >=35 C|H35": [
+      0.25,
+      -0.02,
+      0.51
+    ],
+    "C absolute heat: days >=40 C|H40": [
+      -0.07,
+      -0.44,
+      0.3
+    ],
+    "C relative heat x hot-climate state|T": [
+      1.38,
+      0.57,
+      2.19
+    ],
+    "C relative heat x hot-climate state|T:hotclim": [
+      -1.04,
+      -1.89,
+      -0.18
+    ],
+    "D outcome: accidents|T": [
+      1.17,
+      0.06,
+      2.3
+    ],
+    "D outcome: case fatality (deaths/accident)|T": [
+      -0.22,
+      -1.31,
+      0.88
+    ],
+    "E season: monsoon|T": [
+      3.82,
+      1.11,
+      6.6
+    ],
+    "F tmax-anomaly bins (rain held fixed)|T bin >1.5": [
+      2.65,
+      0.18,
+      5.18
+    ]
+  },
+  "ppml": {
+    "lags|heat cumulative 0-1": [
+      0.13,
+      -1.38,
+      1.66
+    ],
+    "lags|rain cumulative 0-1": [
+      -2.58,
+      -4.73,
+      -0.37
+    ],
+    "leads (falsification)|T_lead": [
+      -0.33,
+      -1.58,
+      0.94
+    ],
+    "leads (falsification)|R_lead": [
+      0.1,
+      -1.02,
+      1.23
+    ]
+  },
+  "bayes_national": {
+    "heat same": [
+      1.26,
+      0.44,
+      2.11
+    ],
+    "heat next": [
+      -0.89,
+      -1.73,
+      -0.08
+    ],
+    "heat net": [
+      0.36,
+      -0.6,
+      1.32
+    ],
+    "rain net": [
+      -2.27,
+      -3.92,
+      -0.54
+    ]
+  },
+  "bayes_projection_2C": {
+    "naive": [
+      2.54,
+      0.88,
+      4.26
+    ],
+    "aware": [
+      0.71,
+      -1.19,
+      2.66
+    ]
+  },
+  "bayes_accounting": {
+    "same-month excess": 9852,
+    "net": 1099
+  }
+}
