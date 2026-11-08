@@ -7,14 +7,14 @@ authors:
     given-names: H S
     orcid: "https://orcid.org/0000-0002-4771-8285"
     affiliation: "Department of Community Medicine, Shridevi Institute of Medical Sciences and Research Hospital, Tumakuru, Karnataka, India"
-version: 1.0.0
-doi: "10.5281/zenodo.24061154"
+version: 1.1.0
+doi: "10.5281/zenodo.24061153"
 date-released: 2026-11-09
 license: MIT
 repository-code: "https://github.com/hssling/india-heat-rain-road-deaths"
 references:
   - type: dataset
-    title: "Higher traffic fines and road deaths in India: data and code (state-month road-death panel 2014-2024)"
+    title: "Higher traffic fines and road deaths in India: data and code for a staggered-adoption, dose-response natural experiment using the 2019 Motor Vehicles (Amendment) Act"
     doi: "10.5281/zenodo.24055110"
     authors:
       - family-names: Siddalingaiah
