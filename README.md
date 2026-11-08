@@ -2,10 +2,10 @@
 
 This repository holds data and code for an analysis of monthly road traffic deaths in 22 Indian states, 2014–2024 (2,750 state-months; 1.61 million deaths). Deaths are linked to population-weighted temperature and rainfall anomalies from India Meteorological Department gridded data, measured relative to the 1991–2020 normal. Effects are identified within states, after removing each state's seasonal pattern and national month-to-month shocks.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24061154.svg)](https://doi.org/10.5281/zenodo.24061154)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24061722.svg)](https://doi.org/10.5281/zenodo.24061722)
 [![reproduce-and-verify](https://github.com/hssling/india-heat-rain-road-deaths/actions/workflows/verify.yml/badge.svg)](https://github.com/hssling/india-heat-rain-road-deaths/actions/workflows/verify.yml)
 
-**Status.** The accompanying manuscript has been submitted for publication. Please cite this archive until the article is out: Siddalingaiah H S. *Temperature and rainfall anomalies and road traffic deaths in 22 Indian states, 2014–2024: data and code* (v1.0.0). Zenodo; 2026. https://doi.org/10.5281/zenodo.24061154
+**Status.** The accompanying manuscript has been submitted for publication. Please cite this archive until the article is out: Siddalingaiah H S. *Temperature and rainfall anomalies and road traffic deaths in 22 Indian states, 2014–2024: data and code* (v1.1.0). Zenodo; 2026. https://doi.org/10.5281/zenodo.24061722
 
 ## Main findings: hotter months displace, wetter months reduce
 
