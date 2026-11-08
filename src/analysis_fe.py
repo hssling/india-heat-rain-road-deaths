@@ -16,7 +16,6 @@ Analyses (outputs/fe_results.csv):
 """
 import pathlib
 import numpy as np, pandas as pd
-import statsmodels.formula.api as smf
 
 P = pathlib.Path(__file__).resolve().parents[1]
 deaths = pd.read_csv(P / "data/rai_state_month_2014_2024.csv", parse_dates=["date"])
@@ -42,43 +41,69 @@ d["hotclim"] = d.state.map(clim >= clim.reindex(d.state.unique()).median()).asty
 d["season"] = np.select([d.date.dt.month.isin([3, 4, 5, 6]), d.date.dt.month.isin([7, 8, 9])], ["premonsoon", "monsoon"], "winter")
 print(f"{d.state.nunique()} states, {len(d)} state-months; hot-climate states: {sorted(d[d.hotclim == 1].state.unique())}")
 
-FE = "C(sc) + C(ym)"
 rows = []
+Z = 1.959963984540054                                              # normal quantile, as in statsmodels' cluster CIs
 
 
-def fit(label, formula, data=d, keep=None):
-    m = smf.ols(formula, data).fit(cov_type="cluster", cov_kwds={"groups": pd.factorize(data.state)[0]})
-    for term in [t for t in m.params.index if (not t.startswith("C(") or t.startswith("C(Tbin)")) and t != "Intercept"]:
-        if keep and term not in keep: continue
-        lo, hi = m.conf_int().loc[term]
-        rows.append(dict(analysis=label, term=term, pct=100 * np.expm1(m.params[term]), lo=100 * np.expm1(lo),
-                         hi=100 * np.expm1(hi), p=m.pvalues[term], n=int(m.nobs)))
-    return m
+def fwl(ycol, xcols, data):
+    """OLS of ycol on xcols with state x calendar-month and national month fixed effects, by Frisch-Waugh-Lovell:
+    outcome and regressors are residualised on an orthonormal (SVD) basis of the fixed-effect space, then the
+    cluster-robust (state) covariance is computed for the regressors only. Point estimates equal the full dummy
+    regression; the small-sample factor G/(G-1)*(N-1)/(N-K) uses K = all dummy columns (1 + (S-1) + (M-1) + p),
+    matching statsmodels' formula fit. Avoids the rank-deficient full covariance (~390 dummies, 22 clusters),
+    whose clustered CIs became NaN under statsmodels 0.15 / pandas 3."""
+    data = data.dropna(subset=[ycol] + xcols)
+    dummies = pd.get_dummies(data[["sc", "ym"]].astype(str)).astype(float).values
+    Dc = np.column_stack([np.ones(len(data)), dummies])
+    U, s, _ = np.linalg.svd(Dc, full_matrices=False)
+    Q = U[:, s > s.max() * max(Dc.shape) * np.finfo(float).eps]
+    res = lambda v: v - Q @ (Q.T @ v)
+    y = res(data[ycol].to_numpy(float)); X = np.column_stack([res(data[c].to_numpy(float)) for c in xcols])
+    XtX_inv = np.linalg.inv(X.T @ X); b = XtX_inv @ (X.T @ y); e = y - X @ b
+    g = pd.factorize(data.state)[0]; G = int(g.max()) + 1
+    meat = sum(np.outer(X[g == k].T @ e[g == k], X[g == k].T @ e[g == k]) for k in range(G))
+    N, K = len(y), 1 + (data.sc.nunique() - 1) + (data.ym.nunique() - 1) + len(xcols)
+    V = XtX_inv @ meat @ XtX_inv * (G / (G - 1)) * ((N - 1) / (N - K))
+    return b, V, N
 
 
-fit("A joint heat+rain (deaths)", f"ly ~ {FE} + T + R")
-fit("B falsification: + leads", f"ly ~ {FE} + T + R + T_lead + R_lead", d.dropna(subset=["T_lead", "R_lead"]))
-fit("B + lags", f"ly ~ {FE} + T + R + T_lag + R_lag", d.dropna(subset=["T_lag", "R_lag"]))
-mlag = fit("B2 lags 0-2 (displacement)", f"ly ~ {FE} + T + T_lag + T_lag2 + R + R_lag", d.assign(T_lag2=d.groupby("state")["T_lag"].shift(1)).dropna(subset=["T_lag", "R_lag"]).assign(T_lag2=lambda x: x.T_lag2.fillna(0)))
-# cumulative (net) effect of a +1 C anomaly over the month and the next month, with its CI
-mc = smf.ols(f"ly ~ {FE} + T + T_lag + R + R_lag", d.dropna(subset=["T_lag", "R_lag"])).fit(cov_type="cluster", cov_kwds={"groups": pd.factorize(d.dropna(subset=["T_lag", "R_lag"]).state)[0]})
-for lab, expr in (("heat, cumulative 0-1 month", "T + T_lag = 0"), ("rain, cumulative 0-1 month", "R + R_lag = 0")):
-    tt = mc.t_test(expr); est = float(np.atleast_1d(tt.effect)[0]); lo, hi = np.atleast_2d(tt.conf_int())[0]
-    rows.append(dict(analysis="B3 cumulative", term=lab, pct=100 * np.expm1(est), lo=100 * np.expm1(lo), hi=100 * np.expm1(hi), p=float(tt.pvalue), n=int(mc.nobs)))
-fit("C absolute heat: days >=35 C", f"ly ~ {FE} + H35 + R")
-fit("C absolute heat: days >=40 C", f"ly ~ {FE} + H40 + R")
-fit("C relative heat x hot-climate state", f"ly ~ {FE} + T + T:hotclim + R")
-for v, lab in (("la", "accidents"), ("li", "injuries"), ("lcf", "case fatality (deaths/accident)")):
-    fit(f"D outcome: {lab}", f"{v} ~ {FE} + T + R")
-for s in ("premonsoon", "monsoon", "winter"):
-    fit(f"E season: {s}", f"ly ~ {FE} + T + R", d[d.season == s])
+def add(label, term, est, var, n):
+    se = np.sqrt(var); from math import erf, sqrt
+    p = 2 * (1 - 0.5 * (1 + erf(abs(est / se) / sqrt(2))))
+    rows.append(dict(analysis=label, term=term, pct=100 * np.expm1(est), lo=100 * np.expm1(est - Z * se),
+                     hi=100 * np.expm1(est + Z * se), p=p, n=n))
+
+
+def fit(label, ycol, xcols, data=d, names=None):
+    b, V, n = fwl(ycol, xcols, data)
+    for i, c in enumerate(xcols):
+        add(label, (names or xcols)[i], b[i], V[i, i], n)
+    return b, V, n
+
+
+d["T:hotclim"] = d["T"] * d.hotclim
 d["Tbin"] = pd.cut(d["T"], [-np.inf, -1.5, -0.5, 0.5, 1.5, np.inf], labels=["<=-1.5", "-1.5..-0.5", "ref", "0.5..1.5", ">1.5"])
-d["Tbin"] = d.Tbin.cat.reorder_categories(["ref", "<=-1.5", "-1.5..-0.5", "0.5..1.5", ">1.5"])
-fit("F tmax-anomaly bins (rain held fixed)", f"ly ~ {FE} + C(Tbin) + R")
-for lab in ("<=-1.5", "-1.5..-0.5", "0.5..1.5", ">1.5"):
-    pass
+BINS = ["<=-1.5", "-1.5..-0.5", "0.5..1.5", ">1.5"]
+for lab in BINS: d[f"T bin {lab}"] = (d.Tbin == lab).astype(float)
+lagged = d.dropna(subset=["T_lag", "R_lag"]).copy()
+lagged["T_lag2"] = lagged.groupby("state")["T_lag"].shift(1).fillna(0)
+
+fit("A joint heat+rain (deaths)", "ly", ["T", "R"])
+fit("B falsification: + leads", "ly", ["T", "R", "T_lead", "R_lead"], d.dropna(subset=["T_lead", "R_lead"]))
+fit("B + lags", "ly", ["T", "R", "T_lag", "R_lag"], lagged)
+fit("B2 lags 0-2 (displacement)", "ly", ["T", "T_lag", "T_lag2", "R", "R_lag"], lagged)
+b, V, n = fwl("ly", ["T", "T_lag", "R", "R_lag"], lagged)          # cumulative (net) effects over the month and the next
+for lab, w in (("heat, cumulative 0-1 month", np.array([1, 1, 0, 0])), ("rain, cumulative 0-1 month", np.array([0, 0, 1, 1]))):
+    add("B3 cumulative", lab, float(w @ b), float(w @ V @ w), n)
+fit("C absolute heat: days >=35 C", "ly", ["H35", "R"])
+fit("C absolute heat: days >=40 C", "ly", ["H40", "R"])
+fit("C relative heat x hot-climate state", "ly", ["T", "T:hotclim", "R"])
+for v, lab in (("la", "accidents"), ("li", "injuries"), ("lcf", "case fatality (deaths/accident)")):
+    fit(f"D outcome: {lab}", v, ["T", "R"])
+for s in ("premonsoon", "monsoon", "winter"):
+    fit(f"E season: {s}", "ly", ["T", "R"], d[d.season == s])
+fit("F tmax-anomaly bins (rain held fixed)", "ly", [f"T bin {lab}" for lab in BINS] + ["R"])
 res = pd.DataFrame(rows)
-res["term"] = res.term.str.replace(r"C\(Tbin\)\[T\.(.*)\]", r"T bin \1", regex=True)
 res.to_csv(P / "outputs/fe_results.csv", index=False)
 pd.set_option("display.width", 200)
 print(res.round(3).to_string(index=False))
