@@ -20,18 +20,20 @@ This repository holds data and code for an analysis of monthly road traffic deat
 - **More crashes, not deadlier ones.** Heat raises accidents and injuries but leaves case fatality unchanged.
 - **Naive projections overstate the risk.** For a sustained +2 °C warming, the same-month-only model gives +2.5% annual deaths. The displacement-aware model gives +0.7% (−1.2 to +2.7), a 3.6-fold overstatement.
 - **The results hold across models.** Fixed-effects (log-OLS) and Poisson pseudo-maximum-likelihood models agree (`outputs/fe_results.csv`, `outputs/ppml_results.csv`).
+- **The results do not depend on the priors.** Refitting the Bayesian model with priors 4 to 20 times wider leaves the national estimates unchanged: net heat +0.35%, net rain −2.26% to −2.29% (`outputs/bayes_prior_sensitivity.csv`).
 
 ## Reproduce
 
 ```bash
 pip install -r requirements.txt
-python verify.py          # recomputes 84 reported numbers from data/ and outputs/ (seconds)
+python verify.py          # recomputes 109 reported numbers from data/ and outputs/ (seconds)
 python run_pipeline.py    # re-runs the fixed-effects and Poisson analyses, the figure, then verify
 ```
 
 Optional steps:
 
 - **Refit the Bayesian model** (NumPyro, about 2 minutes): `pip install -r requirements-bayes.txt`, then `python run_pipeline.py --bayes`.
+- **Re-run the prior sensitivity analysis** (supplementary Table S5; about 6 minutes, same requirements): `python run_pipeline.py --prior-sensitivity`.
 - **Rebuild the weather exposures** (`pip install -r requirements-build.txt`): run `python run_pipeline.py --build`. This downloads about 0.9 GB of IMD gridded data with [imdlib](https://doi.org/10.1016/j.envsoft.2023.105869).
   - It also needs a Census 2011 district boundary file at `data/raw/districts_v2.geojson`, which is not redistributed here because its licence is not clearly open.
   - Any district boundary file with Census 2011 district codes (`dt_code`), district names, state names (`st_nm`) and a `year` field works. For example, see [DataMeet](https://github.com/datameet/maps).
@@ -49,7 +51,8 @@ GitHub Actions re-runs the fixed-effects and Poisson analyses on Linux and runs 
 | `src/analysis_fe.py` | Fixed-effects analyses: joint heat and rain, lags and leads, cumulative effects, relative versus absolute heat, outcomes, seasons, bins. |
 | `src/robust_ppml.py` | Poisson pseudo-maximum-likelihood robustness checks. |
 | `src/bayes_hier.py` | Bayesian hierarchical negative-binomial model with state-varying lagged effects, displacement accounting and the projection contrast. |
-| `src/kill_check.py`, `src/fig_heat.py` | Initial screening analysis; Figure 1. |
+| `src/bayes_prior_sensitivity.py` | Refits the Bayesian model under the main, wide and vague priors and reports national effects, state ranges and convergence diagnostics (supplementary Table S5). |
+| `src/kill_check.py`, `src/fig_heat.py` | Initial screening analysis; Figures 1 and 2 (one graph per file, as submitted) and a combined two-panel version. |
 | `outputs/` | Results tables, posterior draws and log, figure. |
 | `results/expected_key_results.json` | Values reported in the manuscript, checked by `verify.py`. |
 

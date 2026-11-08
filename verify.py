@@ -30,4 +30,19 @@ wx = pd.read_csv(R / "data/state_month_weather_1991_2024.csv")
 check("weather units", wx.state.nunique(), E["sample"]["weather_units"], 0)
 deaths = pd.read_csv(R / "data/rai_state_month_2014_2024.csv")
 check("weather covers every death-panel unit", len(set(deaths.state) - set(wx.state)), 0, 0)
+d = deaths[~pd.to_datetime(deaths.date).dt.strftime("%Y-%m").isin({f"{y}-{m:02d}" for y, ms in ((2020, range(3, 7)), (2021, range(4, 7))) for m in ms})]
+big = d.groupby("state").killed.mean().pipe(lambda s: s[s >= 50].index)
+check("share of deaths in the 22 analysed states (%)", round(100 * d[d.state.isin(big)].killed.sum() / d.killed.sum(), 1), E["share_of_deaths_in_22_states_pct"], 0.051)
+ps = pd.read_csv(R / "outputs/bayes_prior_sensitivity.csv"); ps.index = ps.prior + "|" + ps.quantity
+for k, w in E["bayes_prior_sensitivity"].items():
+    if "range" in k:
+        for lab, col, v in (("min", "lo", w[0]), ("max", "hi", w[1])): check(f"Prior sensitivity {k} {lab}", ps.loc[k, col], v, 0.0051)
+    else:
+        for lab, col, v in zip(("median", "lo", "hi"), ("median", "lo", "hi"), w): check(f"Prior sensitivity {k} {lab}", ps.loc[k, col], v, 0.0051)
+for pr in ("base", "wide", "vague"):
+    dg = ps.loc[f"{pr}|diagnostics: max r_hat / min n_eff / divergences"]
+    check(f"Prior sensitivity {pr}: max R-hat <= 1.01", min(dg["median"], 1.01), dg["median"], 0)
+    check(f"Prior sensitivity {pr}: divergent transitions", dg["hi"], 0, 0)
+for q, v in (("heat net 0-1", MB[:, 0] + MB[:, 1]), ("rain net 0-1", MB[:, 2] + MB[:, 3])):
+    check(f"Prior sensitivity base run reproduces main draws: {q}", ps.loc[f"base|{q}", "median"], pc(v)[0], 0.0051)
 print(f"\n{n - len(fails)}/{n} checks passed"); sys.exit(1 if fails else 0)

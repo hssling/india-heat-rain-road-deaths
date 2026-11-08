@@ -47,3 +47,33 @@ fig.savefig(P / "outputs/fig_heat.png", dpi=600)
 Image.open(P / "outputs/fig_heat.png").convert("L").save(P / "outputs/Figure1.tif", dpi=(600, 600), compression="tiff_lzw")
 Image.open(P / "outputs/fig_heat.png").convert("L").resize((1064, 435)).save(P / "outputs/_preview.png")
 print("saved")
+
+# ---- Elsevier: one graph per file (Figure_1 = lagged effects, Figure_2 = projection contrast) ----
+for name, panel in (("Figure_1", "a"), ("Figure_2", "b")):
+    f2, ax = plt.subplots(figsize=(3.5, 2.9))
+    if panel == "a":
+        for g, (lab, cols, mk, mfc) in enumerate((("Temperature, +1 °C", (0, 1), "o", K), ("Rainfall, +100 mm", (2, 3), "s", "white"))):
+            est = [pc(MB[:, cols[0]]), pc(MB[:, cols[1]]), pc(MB[:, cols[0]] + MB[:, cols[1]])]
+            x = np.arange(3) + (g - 0.5) * 0.28
+            for xi, (m, l, h) in zip(x, est):
+                ax.plot([xi, xi], [l, h], color=K if g == 0 else DG, lw=1.2, ls="-" if g == 0 else (0, (3, 1.5)))
+            ax.plot(x, [e[0] for e in est], ls="none", marker=mk, ms=5, mfc=mfc, mec=K, mew=0.9, label=lab)
+        ax.set_xticks(range(3)); ax.set_xticklabels(["Same month", "Next month", "Net (0–1)"])
+        ax.set_ylabel("Change in monthly road deaths (%)")
+        ax.legend(frameon=False, fontsize=7, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2)
+    else:
+        for i, dT in enumerate((1.0, 2.0)):
+            for j, (lab, v, mfc) in enumerate((("Naive (same month only)", MB[:, 0] * dT, K), ("Displacement-aware (net)", (MB[:, 0] + MB[:, 1]) * dT, "white"))):
+                m, l, h = pc(v); xi = i + (j - 0.5) * 0.28
+                ax.plot([xi, xi], [l, h], color=K if j == 0 else DG, lw=1.2, ls="-" if j == 0 else (0, (3, 1.5)))
+                ax.plot([xi], [m], ls="none", marker="D", ms=5, mfc=mfc, mec=K, mew=0.9, label=lab if i == 0 else None)
+        ax.set_xticks([0, 1]); ax.set_xticklabels(["+1 °C sustained", "+2 °C sustained"])
+        ax.set_ylabel("Change in annual road deaths (%)")
+        ax.legend(frameon=False, fontsize=7, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=1)
+    ax.axhline(0, color=K, lw=0.6)
+    for s in ("top", "right"): ax.spines[s].set_visible(False)
+    f2.tight_layout()
+    f2.savefig(P / f"outputs/{name}.png", dpi=600)
+    Image.open(P / f"outputs/{name}.png").convert("L").save(P / f"outputs/{name}.tif", dpi=(600, 600), compression="tiff_lzw")
+    plt.close(f2)
+    print(name, Image.open(P / f"outputs/{name}.tif").size, "px")

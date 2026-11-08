@@ -1,6 +1,7 @@
 """Re-run the analysis: python run_pipeline.py [--bayes] [--build]
   default : fixed-effects and Poisson-PML analyses (a few minutes), figure, then verify.py
   --bayes : refit the Bayesian hierarchical model (NumPyro, ~2 min; pip install -r requirements-bayes.txt)
+  --prior-sensitivity : refit it under the main, wide and vague priors (Table S5; ~6 min; same requirements)
   --build : rebuild data/state_month_weather_1991_2024.csv from IMD gridded data (downloads ~0.9 GB with imdlib;
             needs data/raw/districts_v2.geojson, see README)"""
 import pathlib, subprocess, sys
@@ -12,4 +13,5 @@ if "--build" in sys.argv:
     run("src/build_exposures.py")
 run("src/analysis_fe.py"); run("src/robust_ppml.py")
 if "--bayes" in sys.argv: run("src/bayes_hier.py")
+if "--prior-sensitivity" in sys.argv: run("src/bayes_prior_sensitivity.py")
 run("src/fig_heat.py"); run("verify.py")

@@ -1,0 +1,40 @@
+base r_hat 1.002 n_eff 1786 div 0
+wide r_hat 1.003 n_eff 1665 div 0
+vague r_hat 1.003 n_eff 1676 div 0
+prior                                         quantity  median        lo      hi
+ base                                  heat same month  1.2605    0.4393  2.1094
+ base                                  heat next month -0.8925   -1.7345 -0.0773
+ base                                     heat net 0-1  0.3557   -0.5967  1.3231
+ base                                  rain same month -1.2321   -2.4364  0.0614
+ base                                  rain next month -1.0435   -2.2033  0.1825
+ base                                     rain net 0-1 -2.2668   -3.9172 -0.5428
+ base                                    tau heat same  0.0029    0.0002  0.0098
+ base                                    tau heat next  0.0048    0.0003  0.0125
+ base                                    tau rain same  0.0072    0.0004  0.0208
+ base                                    tau rain next  0.0074    0.0003  0.0219
+ base                      state rain-net median range     NaN   -3.1303 -1.3600
+ base diagnostics: max r_hat / min n_eff / divergences  1.0016 1786.1946  0.0000
+ wide                                  heat same month  1.2718    0.4184  2.1133
+ wide                                  heat next month -0.8995   -1.7261 -0.0965
+ wide                                     heat net 0-1  0.3475   -0.6394  1.3364
+ wide                                  rain same month -1.2243   -2.4476  0.0743
+ wide                                  rain next month -1.0552   -2.2913  0.1863
+ wide                                     rain net 0-1 -2.2626   -3.9964 -0.4705
+ wide                                    tau heat same  0.0029    0.0001  0.0099
+ wide                                    tau heat next  0.0048    0.0003  0.0127
+ wide                                    tau rain same  0.0084    0.0003  0.0241
+ wide                                    tau rain next  0.0082    0.0003  0.0254
+ wide                      state rain-net median range     NaN   -3.3122 -1.1444
+ wide diagnostics: max r_hat / min n_eff / divergences  1.0034 1665.3310  0.0000
+vague                                  heat same month  1.2715    0.4255  2.1301
+vague                                  heat next month -0.9088   -1.7601 -0.1246
+vague                                     heat net 0-1  0.3523   -0.6169  1.2774
+vague                                  rain same month -1.2452   -2.4498  0.1450
+vague                                  rain next month -1.0658   -2.2832  0.1754
+vague                                     rain net 0-1 -2.2950   -3.9849 -0.5385
+vague                                    tau heat same  0.0030    0.0001  0.0096
+vague                                    tau heat next  0.0048    0.0003  0.0129
+vague                                    tau rain same  0.0082    0.0005  0.0237
+vague                                    tau rain next  0.0084    0.0005  0.0250
+vague                      state rain-net median range     NaN   -3.2963 -1.1423
+vague diagnostics: max r_hat / min n_eff / divergences  1.0026 1676.1259  0.0000
